@@ -2,11 +2,170 @@ import { implode } from 'node-pkware/simple'
 import { DLF, LLF, FTS } from 'arx-convert'
 import { type ArxLLF, type ArxDLF, type ArxFTS } from 'arx-convert/types'
 import JSZip from 'jszip'
-import { concatArrayBuffers, downloadBinaryAs, MimeTypes, times } from '@src/functions.js'
+import {
+  concatArrayBuffers,
+  distanceToFarthestBoundingBoxEdge,
+  downloadBinaryAs,
+  MimeTypes,
+  times,
+} from '@src/functions.js'
+import {
+  DirectionalLight,
+  GridHelper,
+  Group,
+  MathUtils,
+  Mesh,
+  MeshPhongMaterial,
+  PerspectiveCamera,
+  PlaneGeometry,
+  Quaternion,
+  Scene,
+  TextureLoader,
+  Vector3,
+  WebGLRenderer,
+} from 'three'
+import { ViewportGizmo } from 'three-viewport-gizmo'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+// -----------------
+
+const defaultCameraPosition = new Vector3(50, 25, 100)
+const defaultOrientationOfGeometry = new Quaternion(0, 0, 0, 1)
+
+const canvas = document.getElementById('canvas') as HTMLCanvasElement
+const renderer = new WebGLRenderer({ antialias: true, canvas })
+
+const canvasWidth = Number.parseInt(canvas.getAttribute('width') as string, 10)
+const canvasHeight = Number.parseInt(canvas.getAttribute('height') as string, 10)
+
+const fov = 45
+const aspect = canvasWidth / canvasHeight
+const camera = new PerspectiveCamera(fov, aspect, 1, 4000)
+
+const orientationOfGeometry = defaultOrientationOfGeometry.clone()
+
+camera.position.x = defaultCameraPosition.x
+camera.position.y = defaultCameraPosition.y
+camera.position.z = defaultCameraPosition.z
+
+const scene = new Scene()
+
+const group = new Group()
+
+// -----------
+
+const geometry = new PlaneGeometry(100, 100, 1, 1)
+geometry.rotateX(MathUtils.degToRad(-90))
+
+const texture = new TextureLoader().load('textures/l1_prison_[stone]_ground19.jpg')
+
+const material = new MeshPhongMaterial({ map: texture })
+
+const plane = new Mesh(geometry, material)
+group.add(plane)
+
+// -----------
+
+scene.add(group)
+
+const color = 0xff_ff_ff
+const intensity = 3
+const light = new DirectionalLight(color, intensity)
+light.position.set(-1, 2, 4)
+scene.add(light)
+
+let controls: OrbitControls | undefined
+let gizmo: ViewportGizmo | undefined
+
+function render(): void {
+  // if (controls !== undefined) {
+  //   controls.update()
+  // }
+
+  renderer.render(scene, camera)
+
+  if (gizmo !== undefined) {
+    gizmo.render()
+  }
+}
+
+let lastRequestedAnimationFrameId = 0
+
+function animate(): void {
+  render()
+  lastRequestedAnimationFrameId = requestAnimationFrame(animate)
+}
+
+function handleFocus(): void {
+  cancelAnimationFrame(lastRequestedAnimationFrameId)
+  animate()
+}
+
+function handleBlur(): void {
+  cancelAnimationFrame(lastRequestedAnimationFrameId)
+}
+
+/**
+ * @docs https://threejs.org/docs/#examples/en/controls/OrbitControls
+ */
+function setupOrbitControls(): void {
+  controls = new OrbitControls(camera, renderer.domElement)
+
+  /*
+  controls.enableRotate = true
+  controls.enablePan = true
+  controls.enableZoom = true
+
+  controls.enableDamping = true
+  controls.dampingFactor = 0.1
+
+  controls.minDistance = 100
+
+  // disable the next line to allow looking under the 3D model
+  controls.maxPolarAngle = Math.PI / 2
+
+  controls.minZoom = 0.25
+  controls.maxZoom = 2
+
+  controls.autoRotate = false
+
+  // how far the camera can be panned from the origin
+  controls.maxTargetRadius = 100
+  */
+
+  gizmo = new ViewportGizmo(camera, renderer, { type: 'cube' })
+  gizmo.attachControls(controls)
+}
+
+let gridHelper: GridHelper | undefined
+
+function addGrid(): void {
+  if (gridHelper !== undefined) {
+    return
+  }
+
+  const size = distanceToFarthestBoundingBoxEdge(group, orientationOfGeometry)
+  const scale = Math.floor(Math.log2(size / 10))
+
+  const gridSize = 1000 * 2 ** scale
+  const gridUnitSize = 10 * 2 ** scale
+
+  gridHelper = new GridHelper(gridSize, gridSize / gridUnitSize)
+  scene.add(gridHelper)
+}
+
+window.addEventListener('focus', handleFocus)
+window.addEventListener('blur', handleBlur)
+
+addGrid()
+setupOrbitControls()
+animate()
 
 // -----------------
 
 document.getElementById('download')?.addEventListener('click', async () => {
+  // TODO: generate data based on contents of scene
+
   const now = Math.floor(Date.now() / 1000)
 
   // ----
@@ -126,7 +285,7 @@ document.getElementById('download')?.addEventListener('click', async () => {
     textureContainers: [
       {
         id: 1,
-        filename: 'L1_PRISON_[STONE]_GROUND19.jpg',
+        filename: 'l1_prison_[stone]_ground19.jpg',
       },
     ],
   }
