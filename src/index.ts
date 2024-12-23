@@ -10,7 +10,8 @@ import {
   times,
 } from '@src/functions.js'
 import {
-  DirectionalLight,
+  AmbientLight,
+  ArrowHelper,
   GridHelper,
   Group,
   MathUtils,
@@ -68,21 +69,18 @@ group.add(plane)
 
 scene.add(group)
 
-const color = 0xff_ff_ff
-const intensity = 3
-const light = new DirectionalLight(color, intensity)
-light.position.set(-1, 2, 4)
+const light = new AmbientLight()
 scene.add(light)
 
 let controls: OrbitControls | undefined
 let gizmo: ViewportGizmo | undefined
 
 function render(): void {
-  // if (controls !== undefined) {
-  //   controls.update()
-  // }
-
   renderer.render(scene, camera)
+
+  if (controls !== undefined) {
+    controls.update()
+  }
 
   if (gizmo !== undefined) {
     gizmo.render()
@@ -111,7 +109,6 @@ function handleBlur(): void {
 function setupOrbitControls(): void {
   controls = new OrbitControls(camera, renderer.domElement)
 
-  /*
   controls.enableRotate = true
   controls.enablePan = true
   controls.enableZoom = true
@@ -120,20 +117,17 @@ function setupOrbitControls(): void {
   controls.dampingFactor = 0.1
 
   controls.minDistance = 100
+  controls.maxDistance = 2000
 
   // disable the next line to allow looking under the 3D model
   controls.maxPolarAngle = Math.PI / 2
-
-  controls.minZoom = 0.25
-  controls.maxZoom = 2
 
   controls.autoRotate = false
 
   // how far the camera can be panned from the origin
   controls.maxTargetRadius = 100
-  */
 
-  gizmo = new ViewportGizmo(camera, renderer, { type: 'cube' })
+  gizmo = new ViewportGizmo(camera, renderer, { type: 'sphere', container: canvas.parentElement as HTMLElement })
   gizmo.attachControls(controls)
 }
 
@@ -154,14 +148,80 @@ function addGrid(): void {
   scene.add(gridHelper)
 }
 
+function removeGrid(): void {
+  if (gridHelper === undefined) {
+    return
+  }
+
+  scene.remove(gridHelper)
+
+  gridHelper.dispose()
+  gridHelper = undefined
+}
+
+let playerMarker: ArrowHelper | undefined
+
+function addPlayerMarker(): void {
+  if (playerMarker !== undefined) {
+    return
+  }
+
+  const dir = new Vector3(0, -1, 0)
+  dir.normalize()
+
+  const length = 180
+  const origin = new Vector3(0, length, 0)
+  const color = 0xff_ff_00
+
+  playerMarker = new ArrowHelper(dir, origin, length, color, length)
+  scene.add(playerMarker)
+}
+
+function removePlayerMarker(): void {
+  if (playerMarker === undefined) {
+    return
+  }
+
+  scene.remove(playerMarker)
+  playerMarker.dispose()
+  playerMarker = undefined
+}
+
 window.addEventListener('focus', handleFocus)
 window.addEventListener('blur', handleBlur)
 
-addGrid()
+if ((document.getElementById('show-grid') as HTMLInputElement).checked) {
+  addGrid()
+}
+
+if ((document.getElementById('show-player') as HTMLInputElement).checked) {
+  addPlayerMarker()
+}
+
 setupOrbitControls()
 animate()
 
 // -----------------
+
+document.getElementById('show-grid')?.addEventListener('change', (e) => {
+  const checkbox = e.target as HTMLInputElement
+
+  if (checkbox.checked) {
+    addGrid()
+  } else {
+    removeGrid()
+  }
+})
+
+document.getElementById('show-player')?.addEventListener('change', (e) => {
+  const checkbox = e.target as HTMLInputElement
+
+  if (checkbox.checked) {
+    addPlayerMarker()
+  } else {
+    removePlayerMarker()
+  }
+})
 
 document.getElementById('download')?.addEventListener('click', async () => {
   // TODO: generate data based on contents of scene
