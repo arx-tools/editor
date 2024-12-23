@@ -1,0 +1,47 @@
+{
+  "name": "arx-fatalis-browser-editor",
+  "version": "1.0.0",
+  "description": "A gui tool for creating and editing Arx Fatalis maps here in your browser",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "npm": ">=8.0.0",
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "bundle": "esbuild src/index.ts --bundle --minify --outfile=public/bundle.js",
+    "bundle:watch": "nodemon --watch src --exec \"npm run bundle\" --ext ts",
+    "serve": "http-server public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arx-tools/editor.git"
+  },
+  "author": "Lajos Meszaros <m_lajos@hotmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/arx-tools/editor/issues"
+  },
+  "homepage": "https://github.com/arx-tools/editor#readme",
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.0",
+    "@types/node": "^22.10.2",
+    "@types/three": "^0.171.0",
+    "arx-convert": "^10.2.1",
+    "arx-header-size": "^3.1.1",
+    "esbuild": "^0.24.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "jszip": "^3.10.1",
+    "node-pkware": "^5.0.0",
+    "nodemon": "^3.1.9",
+    "three": "^0.171.0",
+    "typescript": "^5.7.2",
+    "xo": "^0.60.0"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  },
+  "keywords": [
+    "arx-fatalis"
+  ]
+}

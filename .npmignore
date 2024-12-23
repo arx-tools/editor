@@ -1,0 +1,9 @@
+.editorconfig
+.gitignore
+.prettierrc
+tsconfig.json
+
+src
+docs
+.xo-config
+tsconfig.tsbuildinfo
