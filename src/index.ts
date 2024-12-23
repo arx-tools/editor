@@ -30,7 +30,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 // -----------------
 
-const defaultCameraPosition = new Vector3(50, 25, 100)
+const defaultCameraPosition = new Vector3(-350, 200, 350)
 const defaultOrientationOfGeometry = new Quaternion(0, 0, 0, 1)
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
@@ -159,10 +159,11 @@ function removeGrid(): void {
   gridHelper = undefined
 }
 
-let playerMarker: ArrowHelper | undefined
+let playerMarkerBody: ArrowHelper | undefined
+let playerMarkerFace: ArrowHelper | undefined
 
-function addPlayerMarker(): void {
-  if (playerMarker !== undefined) {
+function addPlayerMarkerBody(): void {
+  if (playerMarkerBody !== undefined) {
     return
   }
 
@@ -173,18 +174,44 @@ function addPlayerMarker(): void {
   const origin = new Vector3(0, length, 0)
   const color = 0xff_ff_00
 
-  playerMarker = new ArrowHelper(dir, origin, length, color, length)
-  scene.add(playerMarker)
+  playerMarkerBody = new ArrowHelper(dir, origin, length, color, length)
+  scene.add(playerMarkerBody)
 }
 
-function removePlayerMarker(): void {
-  if (playerMarker === undefined) {
+function removePlayerMarkerBody(): void {
+  if (playerMarkerBody === undefined) {
     return
   }
 
-  scene.remove(playerMarker)
-  playerMarker.dispose()
-  playerMarker = undefined
+  scene.remove(playerMarkerBody)
+  playerMarkerBody.dispose()
+  playerMarkerBody = undefined
+}
+
+function addPlayerMarkerFace(): void {
+  if (playerMarkerFace !== undefined) {
+    return
+  }
+
+  const dir = new Vector3(0, 0, -1)
+  dir.normalize()
+
+  const length = 80
+  const origin = new Vector3(0, 170, 0)
+  const color = 0xff_00_00
+
+  playerMarkerFace = new ArrowHelper(dir, origin, length, color, length)
+  scene.add(playerMarkerFace)
+}
+
+function removePlayerMarkerFace(): void {
+  if (playerMarkerFace === undefined) {
+    return
+  }
+
+  scene.remove(playerMarkerFace)
+  playerMarkerFace.dispose()
+  playerMarkerFace = undefined
 }
 
 window.addEventListener('focus', handleFocus)
@@ -195,7 +222,8 @@ if ((document.getElementById('show-grid') as HTMLInputElement).checked) {
 }
 
 if ((document.getElementById('show-player') as HTMLInputElement).checked) {
-  addPlayerMarker()
+  addPlayerMarkerBody()
+  addPlayerMarkerFace()
 }
 
 setupOrbitControls()
@@ -217,9 +245,11 @@ document.getElementById('show-player')?.addEventListener('change', (e) => {
   const checkbox = e.target as HTMLInputElement
 
   if (checkbox.checked) {
-    addPlayerMarker()
+    addPlayerMarkerBody()
+    addPlayerMarkerFace()
   } else {
-    removePlayerMarker()
+    removePlayerMarkerBody()
+    removePlayerMarkerFace()
   }
 })
 
