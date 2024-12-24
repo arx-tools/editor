@@ -278,7 +278,7 @@ document.getElementById('download')?.addEventListener('click', async () => {
     lights: [],
   }
 
-  const llf = LLF.save(llfData).buffer
+  const llf = LLF.save(llfData)
   const rawLlf = implode(llf, 'binary', 'large')
 
   // ----
@@ -300,9 +300,9 @@ document.getElementById('download')?.addEventListener('click', async () => {
     zones: [],
   }
 
-  const dlf = DLF.save(dlfData).buffer
-  const dlfHeader = new Uint8Array(dlf).slice(0, 8520)
-  const dlfBody = new Uint8Array(dlf).slice(8520)
+  const dlf = DLF.save(dlfData)
+  const dlfHeader = new Uint8Array(dlf).slice(0, 8520).buffer
+  const dlfBody = new Uint8Array(dlf).slice(8520).buffer
   const rawDlf = concatArrayBuffers([dlfHeader, implode(dlfBody, 'binary', 'large')])
 
   // ----
@@ -383,9 +383,9 @@ document.getElementById('download')?.addEventListener('click', async () => {
     ],
   }
 
-  const fts = FTS.save(ftsData).buffer
-  const ftsHeader = new Uint8Array(fts).slice(0, 280 + 768 * ftsData.uniqueHeaders.length)
-  const ftsBody = new Uint8Array(fts).slice(280 + 768 * ftsData.uniqueHeaders.length)
+  const fts = FTS.save(ftsData)
+  const ftsHeader = new Uint8Array(fts).slice(0, 280 + 768 * ftsData.uniqueHeaders.length).buffer
+  const ftsBody = new Uint8Array(fts).slice(280 + 768 * ftsData.uniqueHeaders.length).buffer
   const rawFts = concatArrayBuffers([ftsHeader, implode(ftsBody, 'binary', 'large')])
 
   // ----
