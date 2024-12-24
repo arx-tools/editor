@@ -1,6 +1,6 @@
 import { implode } from 'node-pkware/simple'
 import { DLF, LLF, FTS } from 'arx-convert'
-import { type ArxLLF, type ArxDLF, type ArxFTS } from 'arx-convert/types'
+import { type ArxLLF, type ArxDLF, type ArxFTS, ArxPolygonFlags } from 'arx-convert/types'
 import JSZip from 'jszip'
 import {
   concatArrayBuffers,
@@ -73,7 +73,7 @@ const light = new AmbientLight()
 scene.add(light)
 
 let controls: OrbitControls | undefined
-let gizmo: ViewportGizmo | undefined
+let viewportGizmo: ViewportGizmo | undefined
 
 function render(): void {
   renderer.render(scene, camera)
@@ -82,8 +82,8 @@ function render(): void {
     controls.update()
   }
 
-  if (gizmo !== undefined) {
-    gizmo.render()
+  if (viewportGizmo !== undefined) {
+    viewportGizmo.render()
   }
 }
 
@@ -127,8 +127,11 @@ function setupOrbitControls(): void {
   // how far the camera can be panned from the origin
   controls.maxTargetRadius = 100
 
-  gizmo = new ViewportGizmo(camera, renderer, { type: 'sphere', container: canvas.parentElement as HTMLElement })
-  gizmo.attachControls(controls)
+  viewportGizmo = new ViewportGizmo(camera, renderer, {
+    type: 'sphere',
+    container: canvas.parentElement as HTMLElement,
+  })
+  viewportGizmo.attachControls(controls)
 }
 
 let gridHelper: GridHelper | undefined
@@ -366,7 +369,7 @@ document.getElementById('download')?.addEventListener('click', async () => {
         norm: { x: 0, y: -1, z: 0 },
         norm2: { x: 0, y: -1, z: 0 },
         textureContainerId: 1,
-        flags: 64,
+        flags: ArxPolygonFlags.Quad,
         transval: 0,
         area: 10_000,
         room: 1,
