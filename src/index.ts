@@ -1,3 +1,4 @@
+import { getHeaderSize } from 'arx-header-size'
 import { implode } from 'node-pkware/simple'
 import { DLF, LLF, FTS } from 'arx-convert'
 import { type ArxLLF, type ArxDLF, type ArxFTS, ArxPolygonFlags } from 'arx-convert/types'
@@ -7,6 +8,7 @@ import {
   distanceToFarthestBoundingBoxEdge,
   downloadBinaryAs,
   MimeTypes,
+  sliceArrayBufferAt,
   times,
 } from '@src/functions.js'
 import {
@@ -232,38 +234,10 @@ if ((document.getElementById('show-player') as HTMLInputElement).checked) {
 setupOrbitControls()
 animate()
 
-// -----------------
-
-document.getElementById('show-grid')?.addEventListener('change', (e) => {
-  const checkbox = e.target as HTMLInputElement
-
-  if (checkbox.checked) {
-    addGrid()
-  } else {
-    removeGrid()
-  }
-})
-
-document.getElementById('show-player')?.addEventListener('change', (e) => {
-  const checkbox = e.target as HTMLInputElement
-
-  if (checkbox.checked) {
-    addPlayerMarkerBody()
-    addPlayerMarkerFace()
-  } else {
-    removePlayerMarkerBody()
-    removePlayerMarkerFace()
-  }
-})
-
-document.getElementById('download')?.addEventListener('click', async () => {
-  // TODO: generate data based on contents of scene
-
+function generateMapData(): { fts: ArxFTS; dlf: ArxDLF; llf: ArxLLF } {
   const now = Math.floor(Date.now() / 1000)
 
-  // ----
-
-  const llfData: ArxLLF = {
+  const llf: ArxLLF = {
     header: {
       lastUser: 'Arx Browser Editor',
       time: now,
@@ -278,12 +252,9 @@ document.getElementById('download')?.addEventListener('click', async () => {
     lights: [],
   }
 
-  const llf = LLF.save(llfData)
-  const rawLlf = implode(llf, 'binary', 'large')
-
   // ----
 
-  const dlfData: ArxDLF = {
+  const dlf: ArxDLF = {
     header: {
       lastUser: 'Arx Browser Editor',
       time: now,
@@ -300,14 +271,9 @@ document.getElementById('download')?.addEventListener('click', async () => {
     zones: [],
   }
 
-  const dlf = DLF.save(dlfData)
-  const dlfHeader = new Uint8Array(dlf).slice(0, 8520).buffer
-  const dlfBody = new Uint8Array(dlf).slice(8520).buffer
-  const rawDlf = concatArrayBuffers([dlfHeader, implode(dlfBody, 'binary', 'large')])
-
   // ----
 
-  const ftsData: ArxFTS = {
+  const fts: ArxFTS = {
     header: {
       levelIdx: 1,
     },
@@ -383,12 +349,59 @@ document.getElementById('download')?.addEventListener('click', async () => {
     ],
   }
 
-  const fts = FTS.save(ftsData)
-  const ftsHeader = new Uint8Array(fts).slice(0, 280 + 768 * ftsData.uniqueHeaders.length).buffer
-  const ftsBody = new Uint8Array(fts).slice(280 + 768 * ftsData.uniqueHeaders.length).buffer
+  return { fts, dlf, llf }
+}
+
+function compile({ fts, dlf, llf }: { fts: ArxFTS; dlf: ArxDLF; llf: ArxLLF }): {
+  rawLlf: ArrayBuffer
+  rawDlf: ArrayBuffer
+  rawFts: ArrayBuffer
+} {
+  const llfData = LLF.save(llf)
+  const { total: llfHeaderSize } = getHeaderSize(llfData, 'llf')
+  const [llfHeader, llfBody] = sliceArrayBufferAt(llfData, llfHeaderSize)
+  const rawLlf = concatArrayBuffers([llfHeader, implode(llfBody, 'binary', 'large')])
+
+  const dlfData = DLF.save(dlf)
+  const { total: dlfHeaderSize } = getHeaderSize(dlfData, 'dlf')
+  const [dlfHeader, dlfBody] = sliceArrayBufferAt(dlfData, dlfHeaderSize)
+  const rawDlf = concatArrayBuffers([dlfHeader, implode(dlfBody, 'binary', 'large')])
+
+  const ftsData = FTS.save(fts, true)
+  const { total: ftsHeaderSize } = getHeaderSize(ftsData, 'fts')
+  const [ftsHeader, ftsBody] = sliceArrayBufferAt(ftsData, ftsHeaderSize)
   const rawFts = concatArrayBuffers([ftsHeader, implode(ftsBody, 'binary', 'large')])
 
-  // ----
+  return { rawLlf, rawDlf, rawFts }
+}
+
+// -----------------
+
+document.getElementById('show-grid')?.addEventListener('change', (e) => {
+  const checkbox = e.target as HTMLInputElement
+
+  if (checkbox.checked) {
+    addGrid()
+  } else {
+    removeGrid()
+  }
+})
+
+document.getElementById('show-player')?.addEventListener('change', (e) => {
+  const checkbox = e.target as HTMLInputElement
+
+  if (checkbox.checked) {
+    addPlayerMarkerBody()
+    addPlayerMarkerFace()
+  } else {
+    removePlayerMarkerBody()
+    removePlayerMarkerFace()
+  }
+})
+
+document.getElementById('download')?.addEventListener('click', async () => {
+  const { fts, dlf, llf } = generateMapData()
+  const { rawFts, rawDlf, rawLlf } = compile({ fts, dlf, llf })
 
   const zip = new JSZip()
 
@@ -396,6 +409,7 @@ document.getElementById('download')?.addEventListener('click', async () => {
   zip.file('graph/levels/level1/level1.dlf', rawDlf)
   zip.file('graph/levels/level1/level1.llf', rawLlf)
 
-  const content = await zip.generateAsync({ type: 'blob' })
-  downloadBinaryAs(`arx-fatalis-generated-map`, content, MimeTypes.ZIP)
+  const zipContents = await zip.generateAsync({ type: 'blob' })
+
+  downloadBinaryAs(`arx-fatalis-generated-map`, zipContents, MimeTypes.ZIP)
 })

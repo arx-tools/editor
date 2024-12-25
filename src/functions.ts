@@ -72,6 +72,13 @@ export function times<T>(fn: (index: number) => T, repetitions: number): T[] {
   })
 }
 
+export function sliceArrayBufferAt(buffer: ArrayBuffer, at: number): [ArrayBuffer, ArrayBuffer] {
+  const view = new Uint8Array(buffer)
+  const left = view.slice(0, at).buffer
+  const right = view.slice(at).buffer
+  return [left, right]
+}
+
 // --------------------------------------------------------
 // -------------------- three.js stuff --------------------
 // --------------------------------------------------------
