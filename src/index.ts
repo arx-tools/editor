@@ -18,7 +18,7 @@ import {
   Group,
   MathUtils,
   Mesh,
-  MeshPhongMaterial,
+  MeshBasicMaterial,
   PerspectiveCamera,
   PlaneGeometry,
   Quaternion,
@@ -29,6 +29,11 @@ import {
 } from 'three'
 import { ViewportGizmo } from 'three-viewport-gizmo'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+// -----------------
+
+const l1PrisonStoneGround19 = new TextureLoader().load('textures/l1_prison_[stone]_ground19.jpg')
+const l1PrisonStoneGround19Material = new MeshBasicMaterial({ map: l1PrisonStoneGround19 })
 
 // -----------------
 
@@ -54,20 +59,6 @@ camera.position.z = defaultCameraPosition.z
 const scene = new Scene()
 
 const group = new Group()
-
-// -----------
-
-const geometry = new PlaneGeometry(100, 100, 1, 1)
-geometry.rotateX(MathUtils.degToRad(-90))
-
-const texture = new TextureLoader().load('textures/l1_prison_[stone]_ground19.jpg')
-
-const material = new MeshPhongMaterial({ map: texture })
-
-const plane = new Mesh(geometry, material)
-group.add(plane)
-
-// -----------
 
 scene.add(group)
 
@@ -219,20 +210,13 @@ function removePlayerMarkerFace(): void {
   playerMarkerFace = undefined
 }
 
-window.addEventListener('focus', handleFocus)
-window.addEventListener('blur', handleBlur)
+function addGeometry(): void {
+  const geometry = new PlaneGeometry(100, 100, 1, 1)
+  geometry.rotateX(MathUtils.degToRad(-90))
 
-if ((document.getElementById('show-grid') as HTMLInputElement).checked) {
-  addGrid()
+  const plane = new Mesh(geometry, l1PrisonStoneGround19Material)
+  group.add(plane)
 }
-
-if ((document.getElementById('show-player') as HTMLInputElement).checked) {
-  addPlayerMarkerBody()
-  addPlayerMarkerFace()
-}
-
-setupOrbitControls()
-animate()
 
 function generateMapData(): { fts: ArxFTS; dlf: ArxDLF; llf: ArxLLF } {
   const now = Math.floor(Date.now() / 1000)
@@ -413,3 +397,23 @@ document.getElementById('download')?.addEventListener('click', async () => {
 
   downloadBinaryAs(`arx-fatalis-generated-map`, zipContents, MimeTypes.ZIP)
 })
+
+window.addEventListener('focus', handleFocus)
+window.addEventListener('blur', handleBlur)
+
+// -----------
+
+setupOrbitControls()
+
+addGeometry()
+
+if ((document.getElementById('show-grid') as HTMLInputElement).checked) {
+  addGrid()
+}
+
+if ((document.getElementById('show-player') as HTMLInputElement).checked) {
+  addPlayerMarkerBody()
+  addPlayerMarkerFace()
+}
+
+animate()
