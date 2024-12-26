@@ -9,7 +9,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "bundle": "esbuild src/index.ts --bundle --minify --outfile=public/bundle.js",
+    "bundle": "esbuild src/index.ts --bundle --minify --sourcemap --outfile=public/bundle.js",
     "bundle:watch": "nodemon --watch src --exec \"npm run bundle\" --ext ts",
     "serve": "http-server public"
   },

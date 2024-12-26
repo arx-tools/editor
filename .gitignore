@@ -3,3 +3,4 @@ report.*
 dist
 tsconfig.tsbuildinfo
 public/bundle.js
+public/bundle.js.map

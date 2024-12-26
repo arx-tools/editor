@@ -66,6 +66,12 @@ export function concatArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
   return combinedBuffer.buffer
 }
 
+export function repeat<T>(value: T, repetitions: number): T[] {
+  return Array.from({ length: repetitions }).map(() => {
+    return value
+  })
+}
+
 export function times<T>(fn: (index: number) => T, repetitions: number): T[] {
   return Array.from({ length: repetitions }).map((value, index) => {
     return fn(index)
@@ -77,6 +83,52 @@ export function sliceArrayBufferAt(buffer: ArrayBuffer, at: number): [ArrayBuffe
   const left = view.slice(0, at).buffer
   const right = view.slice(at).buffer
   return [left, right]
+}
+
+/**
+ * creates a random floating point number between a (inclusive) and b (exclusive)
+ */
+export function randomBetween(a: number, b: number): number {
+  return a + Math.random() * (b - a)
+}
+
+/**
+ * creates a random integer between min and max (both inclusive)
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random#getting_a_random_integer_between_two_values_inclusive
+ */
+export function randomIntBetween(min: number, max: number): number {
+  min = Math.ceil(min)
+  max = Math.floor(max)
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+// --------------------------------------------------------
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button#value
+ */
+export enum MouseButtons {
+  Left = 0,
+  Middle = 1,
+  Right = 2,
+}
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons#value
+ */
+export enum MouseButtonPressed {
+  None = 0,
+  Left = 1 << 0,
+  Right = 1 << 1,
+  Middle = 1 << 2,
+}
+
+export function didLeftMouseButtonTriggerTheEvent(e: MouseEvent): boolean {
+  return e.button === (MouseButtons.Left as number)
+}
+
+export function isLeftMouseButtonDown(e: MouseEvent): boolean {
+  return (e.buttons & MouseButtonPressed.Left) > 0
 }
 
 // --------------------------------------------------------
