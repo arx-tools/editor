@@ -1,5 +1,5 @@
 import { getHeaderSize } from 'arx-header-size'
-import { implode } from 'node-pkware/simple'
+import { implode, concatArrayBuffers, sliceArrayBufferAt } from 'node-pkware/simple'
 import { DLF, LLF, FTS } from 'arx-convert'
 import {
   type ArxLLF,
@@ -14,13 +14,11 @@ import {
 import { getCellCoords, MAP_DEPTH_IN_CELLS, MAP_WIDTH_IN_CELLS, type QuadrupleOf } from 'arx-convert/utils'
 import JSZip from 'jszip'
 import {
-  concatArrayBuffers,
   didLeftMouseButtonTriggerTheEvent,
   distanceToFarthestBoundingBoxEdge,
   downloadBinaryAs,
   MimeTypes,
   randomIntBetween,
-  sliceArrayBufferAt,
   times,
 } from '@src/functions.js'
 import {
@@ -570,17 +568,23 @@ function compile({ fts, dlf, llf }: { fts: ArxFTS; dlf: ArxDLF; llf: ArxLLF }): 
   const llfData = LLF.save(llf)
   const { total: llfHeaderSize } = getHeaderSize(llfData, 'llf')
   const [llfHeader, llfBody] = sliceArrayBufferAt(llfData, llfHeaderSize)
+  console.time('llf')
   const rawLlf = concatArrayBuffers([llfHeader, implode(llfBody, 'binary', 'large')])
+  console.timeEnd('llf')
 
   const dlfData = DLF.save(dlf)
   const { total: dlfHeaderSize } = getHeaderSize(dlfData, 'dlf')
   const [dlfHeader, dlfBody] = sliceArrayBufferAt(dlfData, dlfHeaderSize)
+  console.time('dlf')
   const rawDlf = concatArrayBuffers([dlfHeader, implode(dlfBody, 'binary', 'large')])
+  console.timeEnd('dlf')
 
   const ftsData = FTS.save(fts, true)
   const { total: ftsHeaderSize } = getHeaderSize(ftsData, 'fts')
   const [ftsHeader, ftsBody] = sliceArrayBufferAt(ftsData, ftsHeaderSize)
+  console.time('fts')
   const rawFts = concatArrayBuffers([ftsHeader, implode(ftsBody, 'binary', 'large')])
+  console.timeEnd('fts')
 
   return { rawLlf, rawDlf, rawFts }
 }
@@ -612,6 +616,8 @@ document.getElementById('show-player')?.addEventListener('change', (e) => {
 document.getElementById('download')?.addEventListener('click', async () => {
   const { fts, dlf, llf } = toArxData()
   const { rawFts, rawDlf, rawLlf } = compile({ fts, dlf, llf })
+
+  // return
 
   const zip = new JSZip()
 

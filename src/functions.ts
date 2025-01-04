@@ -43,29 +43,6 @@ export function downloadBinaryAs(filename: string, data: string | ArrayBuffer | 
   URL.revokeObjectURL(url)
 }
 
-/**
- * @see https://stackoverflow.com/a/49129872/1806628
- */
-export function concatArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
-  if (buffers.length === 0) {
-    return new ArrayBuffer(0)
-  }
-
-  const totalLength = buffers.reduce((sum, buffer) => {
-    return sum + buffer.byteLength
-  }, 0)
-
-  const combinedBuffer = new Uint8Array(totalLength)
-
-  let offset = 0
-  buffers.forEach((buffer) => {
-    combinedBuffer.set(new Uint8Array(buffer), offset)
-    offset = offset + buffer.byteLength
-  })
-
-  return combinedBuffer.buffer
-}
-
 export function repeat<T>(value: T, repetitions: number): T[] {
   return Array.from({ length: repetitions }).map(() => {
     return value
@@ -76,13 +53,6 @@ export function times<T>(fn: (index: number) => T, repetitions: number): T[] {
   return Array.from({ length: repetitions }).map((value, index) => {
     return fn(index)
   })
-}
-
-export function sliceArrayBufferAt(buffer: ArrayBuffer, at: number): [ArrayBuffer, ArrayBuffer] {
-  const view = new Uint8Array(buffer)
-  const left = view.slice(0, at).buffer
-  const right = view.slice(at).buffer
-  return [left, right]
 }
 
 /**
