@@ -1,5 +1,3 @@
-import { getHeaderSize } from 'arx-header-size'
-import { implode, concatArrayBuffers, sliceArrayBufferAt } from 'node-pkware/simple'
 import { DLF, LLF, FTS } from 'arx-convert'
 import {
   type ArxLLF,
@@ -12,15 +10,9 @@ import {
   type ArxVertex,
 } from 'arx-convert/types'
 import { getCellCoords, MAP_DEPTH_IN_CELLS, MAP_WIDTH_IN_CELLS, type QuadrupleOf } from 'arx-convert/utils'
+import { getHeaderSize } from 'arx-header-size'
 import JSZip from 'jszip'
-import {
-  didLeftMouseButtonTriggerTheEvent,
-  distanceToFarthestBoundingBoxEdge,
-  downloadBinaryAs,
-  MimeTypes,
-  randomIntBetween,
-  times,
-} from '@src/functions.js'
+import { implode, concatArrayBuffers, sliceArrayBufferAt } from 'node-pkware/simple'
 import {
   AmbientLight,
   ArrowHelper,
@@ -44,6 +36,14 @@ import {
 } from 'three'
 import { ViewportGizmo } from 'three-viewport-gizmo'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import {
+  didLeftMouseButtonTriggerTheEvent,
+  distanceToFarthestBoundingBoxEdge,
+  downloadBinaryAs,
+  MimeTypes,
+  randomIntBetween,
+  times,
+} from '@src/functions.js'
 
 // -----------------
 
